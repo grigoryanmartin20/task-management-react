@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+html, body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+}
+
+/* Scroll bar */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: #303747;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #90caf9;
+    border-radius: 5px;
+    min-height: 50px;
+}
+/* End of scroll bar */
