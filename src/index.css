@@ -27,3 +27,8 @@ html, body {
     min-height: 50px;
 }
 /* End of scroll bar */
+
+/* Global dialog background */
+.MuiDialog-paper {
+	background-color: #111827 !important; /* gray-900 */
+}

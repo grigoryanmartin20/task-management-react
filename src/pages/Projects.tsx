@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from "react-router";
 import { useState } from "react";
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 // MUI
 import { IconButton, Button } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
@@ -35,7 +35,7 @@ const Projects = () => {
 
 	const handleCancelDelete = () => {
 		setDialogOpen(false);
-		setProjectToDelete(null);
+		setTimeout(() => setProjectToDelete(null), 100);
 	};
 
 	const renderContent = () => {
@@ -97,7 +97,6 @@ const Projects = () => {
 				onConfirm={handleConfirmDelete}
 				onCancel={handleCancelDelete}
 			/>
-			<ToastContainer theme="colored" />
 		</>
 	)
 }

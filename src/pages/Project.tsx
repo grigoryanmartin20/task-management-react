@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { NavLink } from "react-router";
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 // Plugins
 import { v4 as uuidv4 } from 'uuid';
 // MUI
@@ -42,10 +42,11 @@ const Project = () => {
 		if (!name?.trim()?.length) return;
 
 
-		let projectData = {
+		let projectData: ProjectListItem = {
 			id: project?.id || uuidv4(),
 			name: name.trim(),
 			description: description.trim(),
+			createdAt: new Date(),
 			projectSections: projectSections.map((section) => ({
 				id: section.id,
 				name: section.name.trim() || PROJECT_SECTIONS_DEFAULT_NAME,
@@ -102,7 +103,6 @@ const Project = () => {
 					/>
 				</div>
 			</div>
-			<ToastContainer theme="colored" />
 		</>
 	)
 }
