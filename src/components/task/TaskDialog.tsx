@@ -29,6 +29,7 @@ const TaskDialog = ({ isOpen, projectId, sectionId, task, onClose }: TaskDialogP
 			description: taskDescription.trim(),
 			priority: taskPriority,
 			createdAt: new Date(),
+			order: 0,
 		};
 
 		try {

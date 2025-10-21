@@ -33,7 +33,7 @@ const TaskDetails = ({ task }: TaskDetailsProps) => {
 					)
 				}
 				<div className="flex justify-between items-center mt-2">
-				<div className={`${getPriorityColor(task.priority)} text-xs font-bold capitalize italic`}>{task.priority}</div>
+					<div className={`${getPriorityColor(task.priority)} text-xs font-bold capitalize italic`}>{task.priority}</div>
 					<div className="text-xs italic text-gray-400">{formatDate(task.createdAt)}</div>
 				</div>
 			</div>

@@ -1,24 +1,26 @@
 import { NavLink, useNavigate, useParams } from "react-router";
 import { useEffect, useState } from "react";
+import { toast } from 'react-toastify';
 // Redux
 import { useGetProjectByIdQuery } from "../store/api/projectsApi";
-import { useGetTasksQuery } from "../store/api/tasksApi";
+import { useGetTasksQuery, useUpdateTaskMutation } from "../store/api/tasksApi";
 // MUI
 import { IconButton, CircularProgress } from "@mui/material";
-import { Add, ArrowBack } from "@mui/icons-material";
+import { ArrowBack } from "@mui/icons-material";
 // Interfaces
 import type { TaskListItem } from "../interfaces/task.interface";
 // Helpers
-import { getTasksBySections, setTaskBySection } from "../helpers/taskHelper";
+import { getTasksBySections, setTaskBySection, moveTaskBetweenSections, moveTaskToPosition } from "../helpers/taskHelper";
 // Components
 import TaskDialog from "../components/task/TaskDialog";
-import TaskDetails from "../components/task/TaskDetails";
+import SortableTaskList from "../components/task/SortableTaskList";
 
 const Tasks = () => {
 	const navigate = useNavigate();
 	const { projectId } = useParams();
 	const { data: project, isLoading, error } = useGetProjectByIdQuery(projectId as string, { skip: !projectId });
 	const { data: tasks, isLoading: tasksLoading } = useGetTasksQuery(projectId as string);
+	const [updateTask] = useUpdateTaskMutation();
 	const [tasksBySections, setTasksBySections] = useState<Record<string, Array<TaskListItem>>>({});
 	const [sectionId, setSectionId] = useState<string | null>(null);
 	const [task, setTask] = useState<TaskListItem | null>(null);
@@ -36,13 +38,88 @@ const Tasks = () => {
 
 	const handleOpenTaskDialog = (state: boolean, sectionId: string | null, taskData?: TaskListItem | null) => {
 		if (taskData) {
-			if (task) {}
-			else setTasksBySections(setTaskBySection(tasksBySections, sectionId as string, taskData));
+			const sectionTasks = tasksBySections[sectionId as string] || [];
+			const newTaskData = { ...taskData, order: sectionTasks.length };
+
+			setTasksBySections(setTaskBySection(tasksBySections, sectionId as string, newTaskData));
 		}
 
 		setIsOpen(state);
 		setSectionId(sectionId);
 		setTask(task);
+	}
+
+	const handleTaskMove = async (taskId: string, fromSectionId: string, toSectionId: string) => {
+		setTasksBySections(prev => moveTaskBetweenSections(prev, taskId, fromSectionId, toSectionId));
+
+		const taskToUpdate = tasks?.find(task => task.id === taskId);
+		if (taskToUpdate) {
+			try {
+				const destinationSection = tasksBySections[toSectionId] || [];
+				const newOrder = destinationSection.length;
+				
+				await updateTask({
+					...taskToUpdate,
+					projectSectionId: toSectionId,
+					order: newOrder
+				}).unwrap();
+			} catch (error) {
+				setTasksBySections(prev => moveTaskBetweenSections(prev, taskId, toSectionId, fromSectionId));
+				toast.error('Failed to move task. Please try again.');
+			}
+		}
+	}
+
+	const handleTaskMoveToPosition = async (taskId: string, fromSectionId: string, toSectionId: string, targetIndex: number) => {
+		setTasksBySections(prev => moveTaskToPosition(prev, taskId, fromSectionId, toSectionId, targetIndex));
+		
+		const taskToUpdate = tasks?.find(task => task.id === taskId);
+		if (taskToUpdate) {
+			try {
+				await updateTask({
+					...taskToUpdate,
+					projectSectionId: toSectionId,
+					order: targetIndex
+				}).unwrap();
+				
+				const destinationTasks = tasksBySections[toSectionId] || [];
+				const updatePromises = destinationTasks.map((task, index) => {
+					if (task.id === taskId) {
+						return updateTask({ ...task, order: targetIndex }).unwrap();
+					} else if (index >= targetIndex) {
+						return updateTask({ ...task, order: index + 1 }).unwrap();
+					}
+					return Promise.resolve();
+				});
+				
+				await Promise.all(updatePromises.filter(p => p !== Promise.resolve()));
+			} catch (error) {
+				setTasksBySections(prev => moveTaskBetweenSections(prev, taskId, toSectionId, fromSectionId));
+				toast.error('Failed to move task. Please try again.');
+			}
+		}
+	}
+
+	const handleTaskReorder = async (sectionId: string, reorderedTasks: TaskListItem[]) => {
+		setTasksBySections(prev => ({
+			...prev,
+			[sectionId]: reorderedTasks
+		}));
+
+		const updatePromises = reorderedTasks.map((task, index) => {
+			const updatedTask = { ...task, order: index };
+			return updateTask(updatedTask).unwrap();
+		});
+
+		try {
+			await Promise.all(updatePromises);
+		} catch (error) {
+			toast.error('Failed to update task order. Please try again.');
+			setTasksBySections(prev => ({
+				...prev,
+				[sectionId]: tasksBySections[sectionId]
+			}));
+		}
 	}
 
 	return (
@@ -56,28 +133,17 @@ const Tasks = () => {
 					><ArrowBack /></IconButton>
 					<h1 className="text-2xl font-bold ml-2 truncate" title={project && project.name}>{project && project.name}</h1>
 				</div>
-				<div className="flex gap-4 h-[calc(100vh-95px)] mb-[10px] pb-[10px] overflow-y-auto">
-					{project.projectSections.map((section) => (
-						<div key={section.id} className="min-w-[300px] border border-gray-700 rounded-xl p-4">
-							<div className="flex items-center justify-between">
-								<h2 className="truncate">{section.name}</h2>
-								<IconButton 
-									size="small"
-									color="primary"
-									onClick={() => handleOpenTaskDialog(true, section.id, null)}
-								><Add /></IconButton>
-							</div>
-							<div className="flex flex-col gap-2 mt-3">
-								{tasksLoading ? 
-									<div className="flex justify-center mt-10"><CircularProgress size={24} /></div> : 
-									tasksBySections[section.id]?.map((task) => (
-										<TaskDetails key={task.id} task={task} />
-									))
-								}
-							</div>
-						</div>
-					))}
-				</div>
+				{tasksLoading ? 
+					<div className="flex justify-center mt-10"><CircularProgress size={24} /></div> : 
+					<SortableTaskList
+						sections={project.projectSections}
+						tasksBySections={tasksBySections}
+						onTaskMove={handleTaskMove}
+						onTaskMoveToPosition={handleTaskMoveToPosition}
+						onTaskReorder={handleTaskReorder}
+						onAddTask={(sectionId) => handleOpenTaskDialog(true, sectionId, null)}
+					/>
+				}
 			</div>
 			<TaskDialog 
 				isOpen={isOpen} 

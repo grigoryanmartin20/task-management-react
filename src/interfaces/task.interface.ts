@@ -9,6 +9,7 @@ export interface TaskListItem {
 	description: string;
 	priority: TaskPriority;
 	createdAt: Date;
+	order: number;
 }
 
 export interface TaskDialogProps {

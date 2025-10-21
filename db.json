@@ -1,3 +1,100 @@
 {
-  "projects": []
+  "projects": [
+    {
+      "id": "3eac",
+      "name": "Project 1",
+      "description": "",
+      "projectSections": [
+        {
+          "id": "1889a8c5-7b11-4d1f-bb32-d1823cb98bfc",
+          "name": "New Tasks",
+          "createdAt": "2025-10-16T07:15:24.109Z"
+        },
+        {
+          "id": "c4c073f6-690c-48d3-b04e-d5ece1bc99b5",
+          "name": "Completed",
+          "createdAt": "2025-10-16T07:15:24.109Z"
+        }
+      ]
+    },
+    {
+      "id": "d17315b8-8670-4f9c-8b91-613f98920edd",
+      "name": "Project 2",
+      "description": "Project 2 description",
+      "projectSections": [
+        {
+          "id": "c0a1fad3-912d-4346-a72e-5ca25ee57795",
+          "name": "New Tasks",
+          "createdAt": "2025-10-17T13:38:13.351Z"
+        },
+        {
+          "id": "3e216c60-40c5-4388-bb19-6700f0ddad0c",
+          "name": "In Progress",
+          "createdAt": "2025-10-17T13:38:13.351Z"
+        },
+        {
+          "id": "7be5f472-564e-4034-99dd-516b905e5c09",
+          "name": "Step 2",
+          "createdAt": "2025-10-17T13:38:16.365Z"
+        },
+        {
+          "id": "9c9730e4-d898-4336-ad1b-92be5b9413c2",
+          "name": "Step 3",
+          "createdAt": "2025-10-17T13:38:23.309Z"
+        },
+        {
+          "id": "efd1fd0a-a664-4a63-9b56-d145b2c10f54",
+          "name": "Step 4",
+          "createdAt": "2025-10-17T13:38:30.894Z"
+        },
+        {
+          "id": "d02d5d0d-2029-4730-976c-4293e397c96d",
+          "name": "Step 5",
+          "createdAt": "2025-10-17T13:38:37.854Z"
+        },
+        {
+          "id": "e822872d-c1b1-4bf3-952e-3dca021d0194",
+          "name": "Step 6",
+          "createdAt": "2025-10-17T13:38:35.574Z"
+        },
+        {
+          "id": "cbd12498-6d72-46b8-a812-d6a3fd9e407f",
+          "name": "Completed",
+          "createdAt": "2025-10-17T13:38:13.351Z"
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "3e5f906a-28b5-438e-b04e-f3e76d9a6719",
+      "projectId": "d17315b8-8670-4f9c-8b91-613f98920edd",
+      "projectSectionId": "c0a1fad3-912d-4346-a72e-5ca25ee57795",
+      "name": "New task New task New task New task New task New task New task New task New task New task New task",
+      "description": "New task description New task description New task description New task description New task description",
+      "priority": "low",
+      "createdAt": "2025-10-20T07:55:47.933Z",
+      "order": 2
+    },
+    {
+      "id": "95c46e32-8e6c-43c2-85d7-c29dfb507607",
+      "projectId": "d17315b8-8670-4f9c-8b91-613f98920edd",
+      "projectSectionId": "c0a1fad3-912d-4346-a72e-5ca25ee57795",
+      "name": "New task 2",
+      "description": "",
+      "priority": "medium",
+      "createdAt": "2025-10-20T08:17:46.798Z",
+      "order": 0
+    },
+    {
+      "id": "52753c93-1c74-438d-aaba-92f4c6bebde8",
+      "projectId": "d17315b8-8670-4f9c-8b91-613f98920edd",
+      "projectSectionId": "c0a1fad3-912d-4346-a72e-5ca25ee57795",
+      "name": "New task 3",
+      "description": "New task 3 description",
+      "priority": "high",
+      "createdAt": "2025-10-20T08:19:25.031Z",
+      "order": 1
+    }
+  ]
 }
