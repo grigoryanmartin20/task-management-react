@@ -10,7 +10,7 @@ import { ArrowBack } from "@mui/icons-material";
 // Interfaces
 import type { TaskListItem } from "../interfaces/task.interface";
 // Helpers
-import { getTasksBySections, setTaskBySection, moveTaskBetweenSections, moveTaskToPosition } from "../helpers/taskHelper";
+import { getTasksBySections, moveTaskBetweenSections, moveTaskToPosition } from "../helpers/taskHelper";
 // Components
 import TaskDialog from "../components/task/TaskDialog";
 import SortableTaskList from "../components/task/SortableTaskList";
@@ -37,16 +37,9 @@ const Tasks = () => {
 	if (!projectId || isLoading || !project) return null;
 
 	const handleOpenTaskDialog = (state: boolean, sectionId: string | null, taskData?: TaskListItem | null) => {
-		if (taskData) {
-			const sectionTasks = tasksBySections[sectionId as string] || [];
-			const newTaskData = { ...taskData, order: sectionTasks.length };
-
-			setTasksBySections(setTaskBySection(tasksBySections, sectionId as string, newTaskData));
-		}
-
 		setIsOpen(state);
 		setSectionId(sectionId);
-		setTask(task);
+		setTask(taskData || null);
 	}
 
 	const handleTaskMove = async (taskId: string, fromSectionId: string, toSectionId: string) => {
@@ -142,6 +135,7 @@ const Tasks = () => {
 						onTaskMoveToPosition={handleTaskMoveToPosition}
 						onTaskReorder={handleTaskReorder}
 						onAddTask={(sectionId) => handleOpenTaskDialog(true, sectionId, null)}
+						onTaskEdit={(task) => handleOpenTaskDialog(true, task.projectSectionId, task)}
 					/>
 				}
 			</div>

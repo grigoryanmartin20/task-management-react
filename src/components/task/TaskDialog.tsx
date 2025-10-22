@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 // Plugins
 import { v4 as uuidv4 } from 'uuid';
 // MUI
 import { Dialog, DialogTitle, DialogContent, TextField, RadioGroup, Radio, FormControlLabel, Button, DialogActions } from '@mui/material';
 // Redux
-import { useCreateTaskMutation } from "../../store/api/tasksApi";
+import { useCreateTaskMutation, useUpdateTaskMutation } from "../../store/api/tasksApi";
 // Interfaces
 import type { TaskDialogProps, TaskListItem } from '../../interfaces/task.interface';
 // Types
@@ -17,6 +17,17 @@ const TaskDialog = ({ isOpen, projectId, sectionId, task, onClose }: TaskDialogP
 	const [taskDescription, setTaskDescription] = useState(task?.description || '');
 	const [taskPriority, setTaskPriority] = useState<TaskPriority>(task?.priority || 'low');
 	const [createTask, { isLoading: isCreating }] = useCreateTaskMutation();
+	const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
+
+	useEffect(() => {
+		if (task) {
+			setTaskName(task.name || '');
+			setTaskDescription(task.description || '');
+			setTaskPriority(task.priority || 'low');
+		} else {
+			reset();
+		}
+	}, [task]);
 
 	const handleSave = async () => {
 		if (!taskName?.trim()?.length) return;
@@ -28,18 +39,23 @@ const TaskDialog = ({ isOpen, projectId, sectionId, task, onClose }: TaskDialogP
 			name: taskName.trim(),
 			description: taskDescription.trim(),
 			priority: taskPriority,
-			createdAt: new Date(),
-			order: 0,
+			createdAt: task?.createdAt || new Date(),
+			order: task?.order || 0,
 		};
 
 		try {
-			await createTask(taskData);
+			if (task?.id) {
+				await updateTask(taskData);
+				toast.success('Task updated successfully.');
+			} else {
+				await createTask(taskData);
+				toast.success('Task created successfully.');
+			}
 
 			onClose(taskData);
 			reset();
-			toast.success('Task created successfully.');
 		} catch (error) {
-			toast.error('Error creating task. Please try again.');
+			toast.error(`Error ${task?.id ? 'updating' : 'creating'} task. Please try again.`);
 		}
 	}
 
@@ -53,7 +69,7 @@ const TaskDialog = ({ isOpen, projectId, sectionId, task, onClose }: TaskDialogP
 	return (
 		<>
 		<Dialog open={isOpen} onClose={() => onClose(null)} maxWidth="sm" fullWidth>
-			<DialogTitle>Add Task</DialogTitle>
+			<DialogTitle>{task?.id ? 'Edit Task' : 'Add Task'}</DialogTitle>
 
 			<DialogContent>
 					<div className="mb-4">
@@ -104,14 +120,14 @@ const TaskDialog = ({ isOpen, projectId, sectionId, task, onClose }: TaskDialogP
 				</DialogContent>
 
 				<DialogActions sx={{ p: 3, pt: 0, gap: 1 }}>
-					<Button onClick={() => onClose(null)} color="inherit" disabled={isCreating}>Cancel</Button>
+					<Button onClick={() => onClose(null)} color="inherit" disabled={isCreating || isUpdating}>Cancel</Button>
 					<Button 
 						variant="contained" 
 						color="primary" 
 						disabled={!taskName?.trim()?.length}
-						loading={isCreating}
+						loading={isCreating || isUpdating}
 						onClick={handleSave}
-					>Save</Button>
+					>{task?.id ? 'Update' : 'Create'}</Button>
 				</DialogActions>
 			</Dialog>
 		</>

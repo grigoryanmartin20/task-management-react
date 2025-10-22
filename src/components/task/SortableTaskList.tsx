@@ -8,20 +8,11 @@ import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-ki
 import { IconButton } from '@mui/material';
 import { Add } from '@mui/icons-material';
 // Interfaces
-import type { TaskListItem } from '../../interfaces/task.interface';
+import type { TaskListItem, SortableTaskListProps } from '../../interfaces/task.interface';
 import type { ProjectSection } from '../../interfaces/project.interface';
 // Components
 import TaskDetails from './TaskDetails';
 import SortableTaskItem from './SortableTaskItem';
-
-interface SortableTaskListProps {
-	sections: ProjectSection[];
-	tasksBySections: Record<string, Array<TaskListItem>>;
-	onTaskMove: (taskId: string, fromSectionId: string, toSectionId: string) => void;
-	onTaskMoveToPosition: (taskId: string, fromSectionId: string, toSectionId: string, targetIndex: number) => void;
-	onTaskReorder: (sectionId: string, tasks: TaskListItem[]) => void;
-	onAddTask: (sectionId: string) => void;
-}
 
 const SortableTaskList: React.FC<SortableTaskListProps> = ({
 	sections,
@@ -30,6 +21,7 @@ const SortableTaskList: React.FC<SortableTaskListProps> = ({
 	onTaskMoveToPosition,
 	onTaskReorder,
 	onAddTask,
+	onTaskEdit,
 }) => {
 	const [activeTask, setActiveTask] = React.useState<TaskListItem | null>(null);
 	const [overId, setOverId] = React.useState<string | null>(null);
@@ -126,17 +118,18 @@ const SortableTaskList: React.FC<SortableTaskListProps> = ({
 					const sectionTasks = tasksBySections[section.id] || [];
 					const taskIds = sectionTasks.map(task => task.id);
 
-					return (
-						<SectionColumn
-							key={section.id}
-							section={section}
-							tasks={sectionTasks}
-							taskIds={taskIds}
-							onAddTask={onAddTask}
-							overId={overId}
-							activeTask={activeTask}
-						/>
-					);
+						return (
+							<SectionColumn
+								key={section.id}
+								section={section}
+								tasks={sectionTasks}
+								taskIds={taskIds}
+								onAddTask={onAddTask}
+								overId={overId}
+								activeTask={activeTask}
+								onTaskEdit={onTaskEdit}
+							/>
+						);
 				})}
 			</div>
 
@@ -158,7 +151,8 @@ const SectionColumn: React.FC<{
 	onAddTask: (sectionId: string) => void;
 	overId: string | null;
 	activeTask: TaskListItem | null;
-}> = ({ section, tasks, taskIds, onAddTask, overId, activeTask }) => {
+	onTaskEdit: (task: TaskListItem) => void;
+}> = ({ section, tasks, taskIds, onAddTask, overId, activeTask, onTaskEdit }) => {
 	const { setNodeRef, isOver } = useDroppable({ id: section.id });
 
 	const isOverSection = isOver || overId === section.id;
@@ -193,7 +187,7 @@ const SectionColumn: React.FC<{
 								{showDropIndicator && (
 									<div className="h-1 bg-blue-500 rounded-full mx-2 opacity-75 animate-pulse" />
 								)}
-								<SortableTaskItem task={task} />
+								<SortableTaskItem task={task} onClick={() => onTaskEdit(task)} />
 							</React.Fragment>
 						);
 					})}
