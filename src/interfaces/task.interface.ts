@@ -18,7 +18,9 @@ export interface TaskDialogProps {
 	projectId: string | null;
 	sectionId: string | null;
 	task: TaskListItem | null;
+	newOrder: number;
 	onClose: (task: TaskListItem | null) => void;
+	onTaskDelete?: (taskId: string) => void;
 }
 
 export interface TaskDetailsProps {

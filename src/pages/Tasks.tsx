@@ -42,6 +42,24 @@ const Tasks = () => {
 		setTask(taskData || null);
 	}
 
+	const handleTaskDelete = (taskId: string) => {
+		setTasksBySections(prev => {
+			const newTasksBySections = { ...prev };
+			
+			for (const sectionId in newTasksBySections) {
+				const sectionTasks = newTasksBySections[sectionId];
+				const taskIndex = sectionTasks.findIndex(task => task.id === taskId);
+				
+				if (taskIndex !== -1) {
+					newTasksBySections[sectionId] = sectionTasks.filter(task => task.id !== taskId);
+					break;
+				}
+			}
+			
+			return newTasksBySections;
+		});
+	};
+
 	const handleTaskMove = async (taskId: string, fromSectionId: string, toSectionId: string) => {
 		setTasksBySections(prev => moveTaskBetweenSections(prev, taskId, fromSectionId, toSectionId));
 
@@ -144,7 +162,9 @@ const Tasks = () => {
 				projectId={projectId}
 				sectionId={sectionId}
 				task={task}
-				onClose={(task: TaskListItem | null) => handleOpenTaskDialog(false, null, task)} 
+				onClose={(task: TaskListItem | null) => handleOpenTaskDialog(false, null, task)}
+				onTaskDelete={handleTaskDelete}
+				newOrder={sectionId ? (tasksBySections[sectionId]?.length || 0) : 0}
 			/>
 		</>
 	)

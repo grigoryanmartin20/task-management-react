@@ -5,19 +5,23 @@ import { v4 as uuidv4 } from 'uuid';
 // MUI
 import { Dialog, DialogTitle, DialogContent, TextField, RadioGroup, Radio, FormControlLabel, Button, DialogActions } from '@mui/material';
 // Redux
-import { useCreateTaskMutation, useUpdateTaskMutation } from "../../store/api/tasksApi";
+import { useCreateTaskMutation, useUpdateTaskMutation, useDeleteTaskMutation } from "../../store/api/tasksApi";
 // Interfaces
 import type { TaskDialogProps, TaskListItem } from '../../interfaces/task.interface';
 // Types
 import type { TaskPriority } from '../../types/task.type';
+// Components
+import ConfirmDialog from '../dialog/ConfirmDialog';
 
-const TaskDialog = ({ isOpen, projectId, sectionId, task, onClose }: TaskDialogProps) => {
+const TaskDialog = ({ isOpen, projectId, sectionId, task, newOrder = 0, onClose, onTaskDelete }: TaskDialogProps) => {
 	const [taskName, setTaskName] = useState(task?.name || '');
 	const [taskNameTouched, setTaskNameTouched] = useState(false);
 	const [taskDescription, setTaskDescription] = useState(task?.description || '');
 	const [taskPriority, setTaskPriority] = useState<TaskPriority>(task?.priority || 'low');
+	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 	const [createTask, { isLoading: isCreating }] = useCreateTaskMutation();
 	const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
+	const [deleteTask, { isLoading: isDeleting }] = useDeleteTaskMutation();
 
 	useEffect(() => {
 		if (task) {
@@ -40,7 +44,7 @@ const TaskDialog = ({ isOpen, projectId, sectionId, task, onClose }: TaskDialogP
 			description: taskDescription.trim(),
 			priority: taskPriority,
 			createdAt: task?.createdAt || new Date(),
-			order: task?.order || 0,
+			order: task?.id ? task.order : newOrder
 		};
 
 		try {
@@ -58,6 +62,31 @@ const TaskDialog = ({ isOpen, projectId, sectionId, task, onClose }: TaskDialogP
 			toast.error(`Error ${task?.id ? 'updating' : 'creating'} task. Please try again.`);
 		}
 	}
+
+	const handleDelete = () => {
+		if (!task?.id) return;
+		
+		setShowConfirmDialog(true);
+	};
+
+	const handleConfirmDelete = async () => {
+		if (!task?.id) return;
+
+		try {
+			await deleteTask(task.id);
+			toast.success('Task deleted successfully.');
+			onTaskDelete?.(task.id);
+			setShowConfirmDialog(false);
+			onClose(null);
+			reset();
+		} catch (error) {
+			toast.error('Error deleting task. Please try again.');
+		}
+	};
+
+	const handleCancelDelete = () => {
+		setShowConfirmDialog(false);
+	};
 
 	const reset = () => {
 		setTaskName('');
@@ -120,7 +149,19 @@ const TaskDialog = ({ isOpen, projectId, sectionId, task, onClose }: TaskDialogP
 				</DialogContent>
 
 				<DialogActions sx={{ p: 3, pt: 0, gap: 1 }}>
-					<Button onClick={() => onClose(null)} color="inherit" disabled={isCreating || isUpdating}>Cancel</Button>
+					{task?.id && (
+						<Button 
+							color="error" 
+							disabled={isCreating || isUpdating || isDeleting}
+							sx={{ mr: 'auto' }}
+							onClick={handleDelete} 
+						>{isDeleting ? 'Deleting...' : 'Delete'}</Button>
+					)}
+					<Button 
+						color="inherit" 
+						disabled={isCreating || isUpdating || isDeleting}
+						onClick={() => onClose(null)}
+					>Cancel</Button>
 					<Button 
 						variant="contained" 
 						color="primary" 
@@ -130,6 +171,17 @@ const TaskDialog = ({ isOpen, projectId, sectionId, task, onClose }: TaskDialogP
 					>{task?.id ? 'Update' : 'Create'}</Button>
 				</DialogActions>
 			</Dialog>
+			
+			<ConfirmDialog
+				isOpen={showConfirmDialog}
+				title="Delete Task"
+				message="Are you sure you want to delete this task? This action cannot be undone."
+				confirmText="Delete"
+				cancelText="Cancel"
+				variant="danger"
+				onConfirm={handleConfirmDelete}
+				onCancel={handleCancelDelete}
+			/>
 		</>
 	)
 }
